@@ -1,4 +1,4 @@
-package lrucache
+package golrucache
 
 import "fmt"
 
