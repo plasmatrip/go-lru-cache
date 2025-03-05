@@ -13,29 +13,29 @@ type LRUCache[K comparable, T any] interface {
 	Keys() []K
 }
 
-type LRUCacheEntry[K comparable, T any] struct {
+type lruCacheEntry[K comparable, T any] struct {
 	key   K
 	value T
 }
 
-type LRUCacheImpl[K comparable, T any] struct {
+type lruCache[K comparable, T any] struct {
 	len   int
 	cap   int
-	cache map[K]*Node[LRUCacheEntry[K, T]]
-	list  DoubleLinkedList[LRUCacheEntry[K, T]]
+	cache map[K]*node[lruCacheEntry[K, T]]
+	list  DoubleLinkedList[lruCacheEntry[K, T]]
 	mu    sync.Mutex
 }
 
-func NewLRUCache[K comparable, T any](cap int) *LRUCacheImpl[K, T] {
-	return &LRUCacheImpl[K, T]{
-		cache: make(map[K]*Node[LRUCacheEntry[K, T]]),
-		list:  NewDoubleLinkedList[LRUCacheEntry[K, T]](cap),
+func NewLRUCache[K comparable, T any](cap int) *lruCache[K, T] {
+	return &lruCache[K, T]{
+		cache: make(map[K]*node[lruCacheEntry[K, T]]),
+		list:  NewDoubleLinkedList[lruCacheEntry[K, T]](cap),
 		cap:   cap,
 		mu:    sync.Mutex{},
 	}
 }
 
-func (lru *LRUCacheImpl[K, T]) Get(key K) (T, bool) {
+func (lru *lruCache[K, T]) Get(key K) (T, bool) {
 	lru.mu.Lock()
 	defer lru.mu.Unlock()
 
@@ -48,12 +48,12 @@ func (lru *LRUCacheImpl[K, T]) Get(key K) (T, bool) {
 	return zero, false
 }
 
-func (lru *LRUCacheImpl[K, T]) Put(key K, value T) {
+func (lru *lruCache[K, T]) Put(key K, value T) {
 	lru.mu.Lock()
 	defer lru.mu.Unlock()
 
 	if node, ok := lru.cache[key]; ok {
-		node.data = LRUCacheEntry[K, T]{key: key, value: value}
+		node.data = lruCacheEntry[K, T]{key: key, value: value}
 		lru.list.MoveToHead(node)
 		return
 	}
@@ -63,12 +63,12 @@ func (lru *LRUCacheImpl[K, T]) Put(key K, value T) {
 		lru.list.RemoveTail()
 		lru.len--
 	}
-	lru.list.Push(LRUCacheEntry[K, T]{key: key, value: value})
+	lru.list.Push(lruCacheEntry[K, T]{key: key, value: value})
 	lru.cache[key] = lru.list.Head()
 	lru.len++
 }
 
-func (lru *LRUCacheImpl[K, T]) Delete(key K) {
+func (lru *lruCache[K, T]) Delete(key K) {
 	lru.mu.Lock()
 	defer lru.mu.Unlock()
 	if node, ok := lru.cache[key]; ok {
@@ -77,23 +77,23 @@ func (lru *LRUCacheImpl[K, T]) Delete(key K) {
 	}
 }
 
-func (lru *LRUCacheImpl[T, K]) String() string {
+func (lru *lruCache[T, K]) String() string {
 	return lru.list.String()
 }
 
-func (lru *LRUCacheImpl[K, T]) Len() int {
+func (lru *lruCache[K, T]) Len() int {
 	lru.mu.Lock()
 	defer lru.mu.Unlock()
 	return lru.len
 }
 
-func (lru *LRUCacheImpl[K, T]) Cap() int {
+func (lru *lruCache[K, T]) Cap() int {
 	lru.mu.Lock()
 	defer lru.mu.Unlock()
 	return lru.cap
 }
 
-func (lru *LRUCacheImpl[K, T]) Keys() []K {
+func (lru *lruCache[K, T]) Keys() []K {
 	lru.mu.Lock()
 	defer lru.mu.Unlock()
 

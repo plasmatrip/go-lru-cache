@@ -3,34 +3,34 @@ package lrucache
 import "fmt"
 
 type DoubleLinkedList[T any] interface {
-	Head() *Node[T]
-	Tail() *Node[T]
+	Head() *node[T]
+	Tail() *node[T]
 	Push(value T)
-	Remove(node *Node[T])
+	Remove(node *node[T])
 	RemoveTail()
-	MoveToHead(node *Node[T])
+	MoveToHead(node *node[T])
 	String() string
 }
 
-type Node[T any] struct {
+type node[T any] struct {
 	data T
-	next *Node[T]
-	prev *Node[T]
+	next *node[T]
+	prev *node[T]
 }
 
-type DoubleLinkedListImpl[T any] struct {
-	head *Node[T]
-	tail *Node[T]
+type doubleLinkedList[T any] struct {
+	head *node[T]
+	tail *node[T]
 	cap  int
 	len  int
 }
 
-func NewDoubleLinkedList[T any](cap int) *DoubleLinkedListImpl[T] {
-	head := &Node[T]{}
-	tail := &Node[T]{}
+func NewDoubleLinkedList[T any](cap int) *doubleLinkedList[T] {
+	head := &node[T]{}
+	tail := &node[T]{}
 	head.next, tail.prev = tail, head
 
-	return &DoubleLinkedListImpl[T]{
+	return &doubleLinkedList[T]{
 		head: head,
 		tail: tail,
 		cap:  cap,
@@ -38,23 +38,23 @@ func NewDoubleLinkedList[T any](cap int) *DoubleLinkedListImpl[T] {
 	}
 }
 
-func (d *DoubleLinkedListImpl[T]) MoveToHead(node *Node[T]) {
+func (d *doubleLinkedList[T]) MoveToHead(node *node[T]) {
 	d.Remove(node)
 	d.head.next, node.next, node.prev, d.head.next.prev = node, d.head.next, d.head, node
 }
 
-func (d *DoubleLinkedListImpl[T]) Push(value T) {
+func (d *doubleLinkedList[T]) Push(value T) {
 	if d.len == d.cap {
 		d.RemoveTail()
 	}
 
-	node := &Node[T]{data: value}
+	node := &node[T]{data: value}
 
 	d.head.next, node.next, node.prev, d.head.next.prev = node, d.head.next, d.head, node
 	d.len++
 }
 
-func (d *DoubleLinkedListImpl[T]) Remove(node *Node[T]) {
+func (d *doubleLinkedList[T]) Remove(node *node[T]) {
 	if d.len == 0 {
 		return
 	}
@@ -63,7 +63,7 @@ func (d *DoubleLinkedListImpl[T]) Remove(node *Node[T]) {
 	d.len--
 }
 
-func (d *DoubleLinkedListImpl[T]) RemoveTail() {
+func (d *doubleLinkedList[T]) RemoveTail() {
 	if d.len == 0 {
 		return
 	}
@@ -72,15 +72,15 @@ func (d *DoubleLinkedListImpl[T]) RemoveTail() {
 	d.len--
 }
 
-func (d *DoubleLinkedListImpl[T]) Head() *Node[T] {
+func (d *doubleLinkedList[T]) Head() *node[T] {
 	return d.head.next
 }
 
-func (d *DoubleLinkedListImpl[T]) Tail() *Node[T] {
+func (d *doubleLinkedList[T]) Tail() *node[T] {
 	return d.tail.prev
 }
 
-func (d *DoubleLinkedListImpl[T]) String() string {
+func (d *doubleLinkedList[T]) String() string {
 	next := d.head.next
 	str := ""
 	for next.next != nil {
