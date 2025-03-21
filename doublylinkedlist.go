@@ -2,35 +2,25 @@ package golrucache
 
 import "fmt"
 
-type DoubleLinkedList[T any] interface {
-	Head() *node[T]
-	Tail() *node[T]
-	Push(value T)
-	Remove(node *node[T])
-	RemoveTail()
-	MoveToHead(node *node[T])
-	String() string
-}
-
 type node[T any] struct {
 	data T
 	next *node[T]
 	prev *node[T]
 }
 
-type doubleLinkedList[T any] struct {
+type doublyLinkedList[T any] struct {
 	head *node[T]
 	tail *node[T]
 	cap  int
 	len  int
 }
 
-func NewDoubleLinkedList[T any](cap int) *doubleLinkedList[T] {
+func NewDoublyLinkedList[T any](cap int) *doublyLinkedList[T] {
 	head := &node[T]{}
 	tail := &node[T]{}
 	head.next, tail.prev = tail, head
 
-	return &doubleLinkedList[T]{
+	return &doublyLinkedList[T]{
 		head: head,
 		tail: tail,
 		cap:  cap,
@@ -38,14 +28,14 @@ func NewDoubleLinkedList[T any](cap int) *doubleLinkedList[T] {
 	}
 }
 
-func (d *doubleLinkedList[T]) MoveToHead(node *node[T]) {
+func (d *doublyLinkedList[T]) moveToHead(node *node[T]) {
 	d.Remove(node)
 	d.head.next, node.next, node.prev, d.head.next.prev = node, d.head.next, d.head, node
 }
 
-func (d *doubleLinkedList[T]) Push(value T) {
+func (d *doublyLinkedList[T]) Push(value T) {
 	if d.len == d.cap {
-		d.RemoveTail()
+		d.removeTail()
 	}
 
 	node := &node[T]{data: value}
@@ -54,7 +44,7 @@ func (d *doubleLinkedList[T]) Push(value T) {
 	d.len++
 }
 
-func (d *doubleLinkedList[T]) Remove(node *node[T]) {
+func (d *doublyLinkedList[T]) Remove(node *node[T]) {
 	if d.len == 0 {
 		return
 	}
@@ -63,7 +53,7 @@ func (d *doubleLinkedList[T]) Remove(node *node[T]) {
 	d.len--
 }
 
-func (d *doubleLinkedList[T]) RemoveTail() {
+func (d *doublyLinkedList[T]) removeTail() {
 	if d.len == 0 {
 		return
 	}
@@ -72,15 +62,15 @@ func (d *doubleLinkedList[T]) RemoveTail() {
 	d.len--
 }
 
-func (d *doubleLinkedList[T]) Head() *node[T] {
+func (d *doublyLinkedList[T]) Head() *node[T] {
 	return d.head.next
 }
 
-func (d *doubleLinkedList[T]) Tail() *node[T] {
+func (d *doublyLinkedList[T]) Tail() *node[T] {
 	return d.tail.prev
 }
 
-func (d *doubleLinkedList[T]) String() string {
+func (d *doublyLinkedList[T]) String() string {
 	next := d.head.next
 	str := ""
 	for next.next != nil {

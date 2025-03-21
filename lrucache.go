@@ -4,6 +4,16 @@ import (
 	"sync"
 )
 
+type DoubleLinkedList[T any] interface {
+	Head() *node[T]
+	Tail() *node[T]
+	Push(value T)
+	Remove(node *node[T])
+	removeTail()
+	moveToHead(node *node[T])
+	String() string
+}
+
 type LRUCache[K comparable, T any] interface {
 	Get(key K) T
 	Put(key K, value T)
@@ -29,7 +39,7 @@ type lruCache[K comparable, T any] struct {
 func NewLRUCache[K comparable, T any](cap int) *lruCache[K, T] {
 	return &lruCache[K, T]{
 		cache: make(map[K]*node[lruCacheEntry[K, T]]),
-		list:  NewDoubleLinkedList[lruCacheEntry[K, T]](cap),
+		list:  NewDoublyLinkedList[lruCacheEntry[K, T]](cap),
 		cap:   cap,
 		mu:    sync.Mutex{},
 	}
@@ -40,7 +50,7 @@ func (lru *lruCache[K, T]) Get(key K) (T, bool) {
 	defer lru.mu.Unlock()
 
 	if node, ok := lru.cache[key]; ok {
-		lru.list.MoveToHead(node)
+		lru.list.moveToHead(node)
 		return node.data.value, true
 	}
 
@@ -54,13 +64,13 @@ func (lru *lruCache[K, T]) Put(key K, value T) {
 
 	if node, ok := lru.cache[key]; ok {
 		node.data = lruCacheEntry[K, T]{key: key, value: value}
-		lru.list.MoveToHead(node)
+		lru.list.moveToHead(node)
 		return
 	}
 
 	if lru.cap == lru.len {
 		delete(lru.cache, lru.list.Tail().data.key)
-		lru.list.RemoveTail()
+		lru.list.removeTail()
 		lru.len--
 	}
 	lru.list.Push(lruCacheEntry[K, T]{key: key, value: value})
