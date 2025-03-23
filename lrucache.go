@@ -36,7 +36,10 @@ type lruCache[K comparable, T any] struct {
 	mu    sync.Mutex
 }
 
-func NewLRUCache[K comparable, T any](cap int) *lruCache[K, T] {
+// NewLRUCache creates a new lruCache with a given capacity. The capacity is the
+// maximum number of items that the cache can store. The cache will evict the
+// least recently used item when it reaches capacity.
+func NewLRUCache[K comparable, T any](cap int) LRUCache[K, T] {
 	return &lruCache[K, T]{
 		cache: make(map[K]*node[lruCacheEntry[K, T]]),
 		list:  NewDoublyLinkedList[lruCacheEntry[K, T]](cap),
@@ -45,17 +48,20 @@ func NewLRUCache[K comparable, T any](cap int) *lruCache[K, T] {
 	}
 }
 
-func (lru *lruCache[K, T]) Get(key K) (T, bool) {
+// Get retrieves the value associated with the given key from the cache. If the
+// key is found, the associated value is returned along with true. If the key is
+// not found, the zero value for the type T is returned along with false.
+func (lru *lruCache[K, T]) Get(key K) T {
 	lru.mu.Lock()
 	defer lru.mu.Unlock()
 
 	if node, ok := lru.cache[key]; ok {
 		lru.list.moveToHead(node)
-		return node.data.value, true
+		return node.data.value
 	}
 
 	var zero T
-	return zero, false
+	return zero
 }
 
 func (lru *lruCache[K, T]) Put(key K, value T) {
